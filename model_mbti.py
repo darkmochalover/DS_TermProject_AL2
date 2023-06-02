@@ -9,6 +9,27 @@ from sklearn.preprocessing import LabelEncoder
 # Load data
 data = pd.read_csv('drive/MyDrive/preprocessed_mbti_data.csv')
 
+# Define color palette for MBTI types
+mbti_color_palette = {
+    'INTJ': 'red',
+    'INTP': 'blue',
+    'ENTJ': 'green',
+    'ENTP': 'purple',
+    'INFJ': 'orange',
+    'INFP': 'brown',
+    'ENFJ': 'pink',
+    'ENFP': 'gray',
+    'ISTJ': 'olive',
+    'ISFJ': 'cyan',
+    'ESTJ': 'magenta',
+    'ESFJ': 'lime',
+    'ISTP': 'gold',
+    'ISFP': 'teal',
+    'ESTP': 'navy',
+    'ESFP': 'silver'
+}
+
+# Load
 # Classification Modeling (Random Forest)
 features = ['danceability', 'valence', 'energy', 'loudness', 'acousticness']
 target = 'mbti'
@@ -37,8 +58,11 @@ pca_data = pca.fit_transform(X)
 kmeans = KMeans(n_clusters=4, random_state=42)
 clusters = kmeans.fit_predict(X)
 
+# Map MBTI types to colors
+target_colors = [mbti_color_palette[mbti] for mbti in data[target]]
+
 # Visualization of Classification Results
-plt.scatter(pca_data[:, 0], pca_data[:, 1], c=y_encoded, cmap='viridis')
+plt.scatter(pca_data[:, 0], pca_data[:, 1], c=target_colors)
 plt.xlabel('Principal Component 1')
 plt.ylabel('Principal Component 2')
 plt.title('Classification Results')
