@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 
 # Load data
 data = pd.read_csv('drive/MyDrive/preprocessed_mbti_data.csv')
