@@ -146,6 +146,11 @@ y = encoder.transform(df[['mbti']])
 y_df = pd.DataFrame(y, columns=['mbti']) # 변환 완료
 encoded_df = X.join(y_df)
 
+aq_df = X.join(df[['mbti']])
+
+print("[Dataframe]")
+print(aq_df)
+
 print("[Encoded Dataframe]")
 print(encoded_df)
 
@@ -154,7 +159,7 @@ print(encoded_df.columns) # Column 확인
 print(encoded_df.sample(5)) # 샘플 출력
 
 encoded_df.to_csv('data/encoded_data.csv')
-
+aq_df.to_csv('data/preprocessed_mbti_data.csv')
 # -----------------------------------------------------------------------
 '''
 Scaler Part
