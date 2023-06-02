@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, RobustScaler
+ 
 '''
 Data Load
 '''
@@ -105,19 +111,11 @@ Audio Quality를 MinMaxScaler를 통해 스케일링 함.
 (0부터 1까지의 범위)
 '''
 # Subset only measures of centers
-centers_df = df.iloc[: , :22] # 처음 22개 열을 선택해서 저장
-centers_df = df[audio_qualities] # 오디오 품질과 해당 열이 있는 열을 선택해서 저장
-
-centers_df_scaled = MinMaxScaler().fit_transform(centers_df) # MinMaxScaler 사용
-df_scaled = pd.DataFrame(centers_df_scaled, columns=[audio_qualities])
-
-labels_df = df[labels]
-aq_df = labels_df.join(df_scaled) # 스케일링한 데이터를 aq_df에 join함
+X = df.iloc[: , :22] # 처음 22개 열을 선택해서 저장
+X = df[audio_qualities] # 오디오 품질과 해당 열이 있는 열을 선택해서 저장
 
 # 열 이름을 바꾸기 위해 리스트로 저장함
 renamed_columns =  [
-    'mbti',
-    'function_pair',
     'danceability',
     'valence',
     'energy',
@@ -127,26 +125,98 @@ renamed_columns =  [
     'liveness'
 ]
 
-categories = renamed_columns[2:]
-aq_df.columns = renamed_columns
+categories = renamed_columns[1:]
+X.columns = renamed_columns
 
 
 # 장조/단조의 개수의 합을 계산해서 저장 (C장조, D단조, .. 이렇게 따로 계산되는거 말고, 위에 지정된 list 이용해서 sum값 넣어줌)
-aq_df['major_count'] = df[major_tones].sum(axis=1)
-aq_df['minor_count'] = df[minor_tones].sum(axis=1)
+X['major_count'] = df[major_tones].sum(axis=1)
+X['minor_count'] = df[minor_tones].sum(axis=1)
 
-# 각 MBTI에 맞는 설명 label 붙이는 부분
-aq_df['mind'] = np.where(aq_df['mbti'].str.contains('I'), 'Introvert', 'Extrovert')
-aq_df['energy_aspect'] = np.where(aq_df['mbti'].str.contains('N'), 'Intuitive', 'Observant')
-aq_df['nature'] = np.where(aq_df['mbti'].str.contains('F'), 'Feeling', 'Thinking')
-aq_df['tactics'] = np.where(aq_df['mbti'].str.contains('P'), 'Prospecting', 'Judging')
+print(X)
+
+'''
+mbti를 문자열이 아닌 LabelEncoder 통해 숫자로 바꿔준다.
+'''
+# 라벨 인코더 생성
+encoder = LabelEncoder()
+encoder.fit(df[['mbti']])
+y = encoder.transform(df[['mbti']])
+# print(y)
+y_df = pd.DataFrame(y, columns=['mbti']) # 변환 완료
+encoded_df = X.join(y_df)
+
+print("[Encoded Dataframe]")
+print(encoded_df)
 
 ## 확인용 프린트
-print(aq_df.columns) # Column 확인
-print(aq_df.sample(5)) # 샘플 출력
+print(encoded_df.columns) # Column 확인
+print(encoded_df.sample(5)) # 샘플 출력
+
+encoded_df.to_csv('data/encoded_data.csv')
+
+# -----------------------------------------------------------------------
+'''
+Scaler Part
+'''
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=5, test_size=.1)
+
+'''
+StandardScaler
+'''
+
+std_scaler = StandardScaler()
+
+std_scaler.fit(X_train)
+
+# 훈련 데이터 스케일링
+X_train_scaled = std_scaler.transform(X_train)
+
+# 테스트 데이터의 스케일링
+X_test_scaled = std_scaler.transform(X_test)
+
+'''
+MinMaxScaler
+'''
+minmax_scaler = MinMaxScaler()
+minmax_scaler.fit(X_train)
+
+# 훈련 데이터 스케일링
+X_train_scaled = minmax_scaler.transform(X_train)
+
+# 테스트 데이터 스케일링
+X_test_scaled = minmax_scaler.transform(X_test)
+
+'''
+RobustScaler 
+'''
+
+robust_scaler = RobustScaler()
+robust_scaler.fit(X_train)
+
+# 훈련 데이터 스케일링
+X_train_scaled = robust_scaler.transform(X_train)
+
+# 테스트 데이터 스케일링
+X_test_scaled = robust_scaler.transform(X_test)
 
 
 '''
-Preprocessing하여 얻은 데이터프레임을 csv파일로 다시 저장함.
+SMOTE Part
 '''
-aq_df.to_csv('data/preprocessed_mbti_data.csv') # 데이터프레임을 csv 저장
+# +) encoded_df랑 df의 라벨값은 인코딩 유무에만 차이가 있음, 시각화를 위해 출력은 df 이용
+df['mbti'].value_counts().plot(kind='barh')
+plt.show()
+
+smote = SMOTE(sampling_strategy='auto', random_state=0)
+X_train_over,y_train_over = smote.fit_resample(X_train,y_train)
+print('SMOTE 적용 전 학습용 피처/레이블 데이터 세트: ', X_train.shape, y_train.shape)
+print('SMOTE 적용 후 학습용 피처/레이블 데이터 세트: ', X_train_over.shape, y_train_over.shape)
+
+
+# 라벨 디코딩 후 분포 확인
+print('SMOTE 적용 후 레이블 값 분포')
+decoded_labels = encoder.inverse_transform(y_train_over)
+print(pd.Series(decoded_labels).value_counts())
+
