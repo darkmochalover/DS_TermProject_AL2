@@ -30,9 +30,8 @@ mbti_color_palette = {
     'ESFP': 'silver'
 }
 
-# Load
 # Classification Modeling (Random Forest)
-features = ['danceability', 'valence', 'energy', 'loudness', 'acousticness']
+features = ['danceability', 'valence', 'energy', 'loudness', 'acousticness', 'instrumentalness', 'liveness', 'major_count', 'minor_count']
 target = 'mbti'
 
 X = data[features]
@@ -45,12 +44,32 @@ y_encoded = label_encoder.fit_transform(y)
 # Split the data into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
 
-# Random Forest Model
+# Random Forest Model with feature importance selection
+rf_model = RandomForestClassifier(random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Get feature importances
+feature_importances = rf_model.feature_importances_
+
+# Create a dataframe with feature names and importance scores
+feature_importance_df = pd.DataFrame({'Feature': features, 'Importance': feature_importances})
+
+# Sort the dataframe by importance score in descending order
+feature_importance_df = feature_importance_df.sort_values('Importance', ascending=False)
+
+# Select the top 5 features
+top_features = feature_importance_df['Feature'].head(5).tolist()
+
+X_top_features = X[top_features]
+
+X_train, X_test, y_train, y_test = train_test_split(X_top_features, y_encoded, test_size=0.2, random_state=42)
+
+# Random Forest Model with top 5 features
 rf_model = RandomForestClassifier(random_state=42)
 rf_model.fit(X_train, y_train)
 rf_predictions = rf_model.predict(X_test)
 rf_accuracy = accuracy_score(y_test, rf_predictions)
-print("Random Forest Accuracy:", rf_accuracy)
+print("Random Forest Accuracy with Top 5 Features:", rf_accuracy)
 
 # Clustering Modeling (K-Means)
 pca = PCA(n_components=2)
