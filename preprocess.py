@@ -6,11 +6,12 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, RobustScaler
- 
+from utils import raw_data_path, data_path
+
 '''
 Data Load
 '''
-df = pd.read_csv('data/combined_mbti_df.csv')
+df = pd.read_csv(raw_data_path)
 print(df[:][:5])
 print(df.columns)
 

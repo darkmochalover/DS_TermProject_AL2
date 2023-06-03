@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 from math import pi
 import ipywidgets as widgets
 from IPython.display import display
+from utils import data_path
 
 '''
 Data Load
 '''
-df = pd.read_csv("C:/Users/user/Desktop/combined_mbti_df.csv")
+df = pd.read_csv(data_path)
 print(df[:][:5])
 print(df.columns)
 

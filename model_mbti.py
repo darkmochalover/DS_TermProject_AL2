@@ -6,9 +6,10 @@ from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+from utils import data_path
 
 # Load data
-data = pd.read_csv('drive/MyDrive/preprocessed_mbti_data.csv')
+data = pd.read_csv(data_path)
 
 # Define color palette for MBTI types
 mbti_color_palette = {
