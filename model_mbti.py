@@ -6,10 +6,11 @@ from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from utils import data_path
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 
 # Load data
-data = pd.read_csv(data_path)
+data = pd.read_csv('drive/MyDrive/preprocessed_mbti_data.csv')
 
 # Define color palette for MBTI types
 mbti_color_palette = {
@@ -81,6 +82,13 @@ clusters = kmeans.fit_predict(X)
 
 # Map MBTI types to colors
 target_colors = [mbti_color_palette[mbti] for mbti in data[target]]
+
+# Regression Modeling (Linear Regression)
+reg_model = LinearRegression()
+reg_model.fit(X_train, y_train)
+reg_predictions = reg_model.predict(X_test)
+reg_mse = mean_squared_error(y_test, reg_predictions)
+print("Mean Squared Error (Regression):", reg_mse)
 
 # Visualization of Classification Results
 plt.scatter(pca_data[:, 0], pca_data[:, 1], c=target_colors)
